@@ -14,8 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nine Tasks",
-  description: "Task management app",
+  title: "NINE Tasks",
+  description: "Gestor de tareas y productividad extrema",
+  appleWebApp: {
+    title: "NINE Tasks",
+    statusBarStyle: "black-translucent",
+    capable: true,
+  },
+};
+
+export const viewport = {
+  themeColor: "#4F46E5",
 };
 
 export default function RootLayout({
