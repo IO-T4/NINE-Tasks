@@ -32,7 +32,16 @@ export default function LoginPage() {
         </div>
 
         <form action={formAction} className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-4">
+            <div className="relative">
+              <input
+                type="text"
+                name="deviceName"
+                placeholder="Nombre de Dispositivo (ej: Mi Móvil)"
+                required
+                className="w-full px-5 py-4 rounded-xl bg-background/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground placeholder:text-muted-foreground/60"
+              />
+            </div>
             <div className="relative">
               <input
                 type="password"

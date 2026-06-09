@@ -43,6 +43,8 @@ export async function getTasksAction() {
         categoryId: tasks.categoryId,
         categoryName: categories.name,
         categoryColor: categories.color,
+        timerStatus: tasks.timerStatus,
+        timeSpentSeconds: tasks.timeSpentSeconds,
       })
       .from(tasks)
       .leftJoin(categories, eq(tasks.categoryId, categories.id))

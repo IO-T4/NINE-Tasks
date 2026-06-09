@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const session = request.cookies.get("nine_tasks_session");
+  const session = request.cookies.get("nine_tasks_v2");
 
   // Si no hay sesión y no estamos en la página de login, redirigir a login
   if (!session && !request.nextUrl.pathname.startsWith("/login")) {

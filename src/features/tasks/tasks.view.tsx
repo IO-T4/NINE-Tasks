@@ -1,6 +1,6 @@
 import { getTasksAction, getCategoriesAction } from './actions/task.actions';
 import { TaskForm } from './components/task-form';
-import { TaskItem } from './components/task-item';
+import { TaskListClient } from './components/task-list-client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogOut, Folder, LayoutDashboard, CheckCircle2 } from 'lucide-react';
 import { logoutAction } from '@/features/auth/actions';
@@ -87,23 +87,7 @@ export async function TasksView() {
             <p className="text-sm mt-1">¡Añade tu primer proyecto o tarea!</p>
           </div>
         ) : (
-          <div className="space-y-10">
-            {Object.entries(groupedTasks).map(([category, catTasks]) => (
-              <div key={category} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-                <h2 className="text-xl font-bold flex items-center gap-2 text-foreground/80">
-                  <Folder className="w-5 h-5 text-primary" /> {category}
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    ({catTasks.filter(t => t.isCompleted).length}/{catTasks.length})
-                  </span>
-                </h2>
-                <div className="space-y-3">
-                  {catTasks.map((task) => (
-                    <TaskItem key={task.id} task={task} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <TaskListClient groupedTasks={groupedTasks} />
         )}
       </section>
     </div>
