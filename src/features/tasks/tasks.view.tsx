@@ -60,7 +60,7 @@ export async function TasksView() {
                 {/* Botón placeholder para 'Borrar' (aún no funcional, solo visual) */}
                 <button className="text-muted-foreground/40 hover:text-destructive transition-colors text-sm font-medium px-3 py-1 rounded-md">
                   Eliminar
-                </div>
+                </button>
               </div>
             ))
           )}
