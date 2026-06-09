@@ -73,7 +73,9 @@ export function TaskItem({ task }: TaskProps) {
             {task.title}
           </span>
           {!task.isCompleted && (
-             <AlertCircle className={`w-4 h-4 shrink-0 ${priorityColors[task.priority] || "text-muted-foreground"}`} title={`Prioridad: ${task.priority}`} />
+            <span title={`Prioridad: ${task.priority}`}>
+               <AlertCircle className={`w-4 h-4 shrink-0 ${priorityColors[task.priority] || "text-muted-foreground"}`} />
+            </span>
           )}
         </div>
       </div>
