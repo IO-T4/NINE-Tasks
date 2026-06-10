@@ -4,6 +4,7 @@ import { db } from '@/lib/db/client';
 import { tasks, categories } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { addXPAction } from '@/features/profile/actions';
 
 // Categorías
 export async function getCategoriesAction() {
@@ -84,9 +85,10 @@ export async function getTasksAction() {
 
 export async function createTaskAction(
   title: string, 
-  priority: "low" | "medium" | "high" | "urgent" = "medium",
-  categoryId?: number | null,
-  dueDate?: Date | null
+  priority: "low" | "medium" | "high" | "urgent",
+  energyLevel: "low" | "medium" | "high",
+  categoryId: number | null,
+  dueDate: Date | null
 ) {
   try {
     if (!title.trim()) throw new Error("El título es obligatorio");
@@ -94,6 +96,7 @@ export async function createTaskAction(
     await db.insert(tasks).values({ 
       title,
       priority,
+      energyLevel,
       categoryId: categoryId || null,
       dueDate: dueDate || null,
       status: "todo"
@@ -113,6 +116,12 @@ export async function toggleTaskAction(id: number, isCompleted: boolean) {
     await db.update(tasks)
       .set({ isCompleted, status: newStatus })
       .where(eq(tasks.id, id));
+      
+    if (isCompleted) {
+      // Add 10 XP for completing a task
+      await addXPAction(10);
+    }
+    
     revalidatePath('/');
     return { success: true };
   } catch (error) {

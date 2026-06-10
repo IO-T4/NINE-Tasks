@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { schedules, scheduleExceptions } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { addXPAction } from "@/features/profile/actions";
 
 export async function getSchedulesAction() {
   try {
@@ -33,6 +34,7 @@ export async function createScheduleAction(data: {
       ...data,
       categoryId: data.categoryId || null
     });
+    await addXPAction(20); // 20 XP for setting up a routine
     revalidatePath("/schedule");
     return { success: true };
   } catch (error) {

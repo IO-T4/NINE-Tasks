@@ -12,21 +12,28 @@ import {
   ShieldCheck, 
   Menu, 
   X,
-  LogOut
+  LogOut,
+  LayoutDashboard,
+  BarChart
 } from "lucide-react";
 
 import { logoutAction } from "@/features/auth/actions";
+import { Zap, Trophy } from "lucide-react";
 
 type SidebarProps = {
   userRole?: string;
+  profile?: any;
 };
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ userRole, profile }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
     { href: "/", label: "Tareas", icon: CheckSquare },
+    { href: "/board", label: "Kanban", icon: LayoutDashboard },
+    { href: "/focus", label: "Focus 7 Días", icon: Zap },
+    { href: "/stats", label: "Estadísticas", icon: BarChart },
     { href: "/projects", label: "Proyectos", icon: FolderKanban },
     { href: "/calendar", label: "Calendario", icon: CalendarDays },
     { href: "/schedule", label: "Horario", icon: Clock },
@@ -64,14 +71,61 @@ export function Sidebar({ userRole }: SidebarProps) {
         fixed top-0 bottom-0 left-0 z-50 w-64 border-r bg-card/50 backdrop-blur-xl flex flex-col transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
-        <div className="p-6 hidden md:flex items-center justify-between">
-          <div className="font-extrabold tracking-tighter text-2xl">NINE Tasks</div>
-          <ThemeToggle />
+        <div className="p-6 hidden md:flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="font-extrabold tracking-tighter text-2xl">NINE Tasks</div>
+            <ThemeToggle />
+          </div>
+          {profile && (
+            <div className="bg-primary/5 border rounded-2xl p-4 mt-2">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-sm flex items-center gap-1">
+                  <Trophy className="w-4 h-4 text-amber-500" /> Nivel {profile.level}
+                </span>
+                {profile.prestige > 0 && (
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    P {profile.prestige}
+                  </span>
+                )}
+              </div>
+              <div className="w-full bg-muted rounded-full h-2.5">
+                <div 
+                  className="bg-primary h-2.5 rounded-full transition-all" 
+                  style={{ width: `${(profile.xp / (profile.level * 100)) * 100}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 font-medium text-right">
+                {profile.xp} / {profile.level * 100} XP
+              </p>
+            </div>
+          )}
         </div>
 
-        <div className="p-4 md:hidden border-b flex justify-between items-center bg-background">
-          <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
-          <button onClick={toggle} className="p-2 rounded-xl bg-muted"><X className="w-5 h-5" /></button>
+        <div className="p-4 md:hidden flex flex-col gap-4 border-b bg-background">
+          <div className="flex justify-between items-center">
+            <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
+            <button onClick={toggle} className="p-2 rounded-xl bg-muted"><X className="w-5 h-5" /></button>
+          </div>
+          {profile && (
+            <div className="bg-primary/5 border rounded-2xl p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-sm flex items-center gap-1">
+                  <Trophy className="w-4 h-4 text-amber-500" /> Nivel {profile.level}
+                </span>
+                {profile.prestige > 0 && (
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    P {profile.prestige}
+                  </span>
+                )}
+              </div>
+              <div className="w-full bg-muted rounded-full h-2.5">
+                <div 
+                  className="bg-primary h-2.5 rounded-full transition-all" 
+                  style={{ width: `${(profile.xp / (profile.level * 100)) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">

@@ -25,6 +25,7 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   status: text("status", { enum: ["todo", "in-progress", "done"] }).default("todo").notNull(),
   priority: text("priority", { enum: ["low", "medium", "high", "urgent"] }).default("medium").notNull(),
+  energyLevel: text("energy_level", { enum: ["low", "medium", "high"] }).default("medium").notNull(),
   dueDate: timestamp("due_date"),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: 'set null' }),
   isCompleted: boolean("is_completed").default(false).notNull(),
@@ -63,4 +64,19 @@ export const scheduleExceptions = pgTable("schedule_exceptions", {
   scheduleId: integer("schedule_id").references(() => schedules.id, { onDelete: 'cascade' }).notNull(),
   exceptionDate: date("exception_date").notNull(), // The specific date altered
   isCancelled: boolean("is_cancelled").default(true).notNull(),
+});
+
+export const globalProfile = pgTable("global_profile", {
+  id: serial("id").primaryKey(), // We only use id=1
+  xp: integer("xp").default(0).notNull(),
+  level: integer("level").default(1).notNull(),
+  prestige: integer("prestige").default(0).notNull(),
+});
+
+export const externalCalendars = pgTable("external_calendars", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  color: text("color").default("gray").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, CalendarClock, Ban, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarClock, Ban, Loader2, Globe } from "lucide-react";
 import { TaskItem } from "./task-item";
 import { cancelScheduleForDateAction } from "@/features/schedule/actions";
+import { isSameDay } from "date-fns";
 
-export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tasks: any[], schedules?: any[], exceptions?: any[] }) {
+export function CalendarClient({ tasks, schedules = [], exceptions = [], externalEvents = [] }: { tasks: any[], schedules?: any[], exceptions?: any[], externalEvents?: any[] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isPending, startTransition] = useTransition();
   
@@ -48,6 +49,14 @@ export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tas
     });
   };
 
+  const getExternalEventsForDay = (day: number) => {
+    const dateObj = new Date(year, month, day);
+    return externalEvents.filter(ev => {
+      // node-ical parsing usually gives proper Date objects for start/end
+      return isSameDay(new Date(ev.start), dateObj);
+    });
+  };
+
   const handleCancelRoutine = (scheduleId: number, day: number) => {
     const dateObj = new Date(year, month, day);
     const yyyy = dateObj.getFullYear();
@@ -68,6 +77,7 @@ export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tas
     : [];
     
   const selectedDateSchedules = selectedDay ? getDaySchedules(selectedDay) : [];
+  const selectedDateExternal = selectedDay ? getExternalEventsForDay(selectedDay) : [];
 
   return (
     <div className="space-y-8">
@@ -95,6 +105,7 @@ export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tas
               return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
             });
             const hasSchedules = getDaySchedules(day).length > 0;
+            const hasExternal = getExternalEventsForDay(day).length > 0;
             const isToday = day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
             const isSelected = selectedDay === day;
 
@@ -109,6 +120,7 @@ export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tas
               >
                 <span>{day}</span>
                 <div className="flex gap-1 mt-auto">
+                  {hasExternal && <div className="w-2 h-2 rounded-full bg-orange-500" title="Evento Externo" />}
                   {hasSchedules && <div className="w-2 h-2 rounded-full bg-blue-500" title="Rutinas" />}
                   {hasTasks && <div className="w-2 h-2 rounded-full bg-primary" title="Tareas" />}
                 </div>
@@ -122,12 +134,33 @@ export function CalendarClient({ tasks, schedules = [], exceptions = [] }: { tas
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <h3 className="text-xl font-bold border-b pb-2">Plan para el {selectedDay} de {monthNames[month]}</h3>
           
-          {selectedDateSchedules.length === 0 && selectedDateTasks.length === 0 ? (
-            <p className="text-muted-foreground py-4">Día libre. No hay tareas programadas.</p>
+          {selectedDateSchedules.length === 0 && selectedDateTasks.length === 0 && selectedDateExternal.length === 0 ? (
+            <p className="text-muted-foreground py-4">Día libre. No hay eventos programados.</p>
           ) : (
             <>
-              {selectedDateSchedules.length > 0 && (
+              {selectedDateExternal.length > 0 && (
                 <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Globe className="w-4 h-4" /> Calendario Externo
+                  </h4>
+                  {selectedDateExternal.sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime()).map(ev => (
+                    <div key={ev.id} className="p-4 rounded-2xl border bg-card flex items-center gap-4">
+                      <div className="w-2 h-full rounded-full self-stretch" style={{ backgroundColor: ev.color || '#888' }} />
+                      <div>
+                        <p className="font-bold">{ev.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(ev.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                          {new Date(ev.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          <span className="ml-2 px-2 py-0.5 bg-muted rounded text-xs">{ev.calendarName}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedDateSchedules.length > 0 && (
+                <div className="space-y-3 mt-6">
                   <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Rutinas Programadas</h4>
                   {selectedDateSchedules.sort((a,b) => a.startTime.localeCompare(b.startTime)).map(s => (
                     <div key={s.id} className={`group p-4 rounded-2xl border bg-card/60 flex items-center justify-between ${isPending ? 'opacity-50' : ''}`}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { Check, Trash2, AlertCircle } from "lucide-react";
+import { Check, Trash2, AlertCircle, Battery } from "lucide-react";
 import { toggleTaskAction, deleteTaskAction } from "../actions/task.actions";
 
 type TaskProps = {
@@ -14,6 +14,7 @@ type TaskProps = {
     createdAt: Date;
     categoryName?: string | null;
     timeSpentSeconds?: number;
+    energyLevel?: string;
   };
 };
 
@@ -52,6 +53,12 @@ export function TaskItem({ task }: TaskProps) {
     return `${s}s`;
   };
 
+  const energyIcons: Record<string, { color: string, level: string }> = {
+    low: { color: "text-green-500", level: "Baja" },
+    medium: { color: "text-amber-500", level: "Media" },
+    high: { color: "text-red-500", level: "Alta" },
+  };
+
   return (
     <div
       className={`group p-4 sm:p-5 rounded-2xl border bg-card text-card-foreground shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all duration-300 hover:border-primary/30 hover:shadow-md animate-in fade-in slide-in-from-bottom-2 ${
@@ -83,9 +90,16 @@ export function TaskItem({ task }: TaskProps) {
             {task.title}
           </span>
           {!task.isCompleted && (
-            <span title={`Prioridad: ${task.priority}`}>
-               <AlertCircle className={`w-4 h-4 shrink-0 ${priorityColors[task.priority] || "text-muted-foreground"}`} />
-            </span>
+            <>
+              <span title={`Prioridad: ${task.priority}`}>
+                 <AlertCircle className={`w-4 h-4 shrink-0 ${priorityColors[task.priority] || "text-muted-foreground"}`} />
+              </span>
+              {task.energyLevel && (
+                <span title={`Energía Requerida: ${energyIcons[task.energyLevel]?.level}`} className="flex items-center">
+                  <Battery className={`w-4 h-4 shrink-0 ${energyIcons[task.energyLevel]?.color || "text-muted-foreground"}`} />
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>

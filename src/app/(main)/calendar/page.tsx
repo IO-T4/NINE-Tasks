@@ -1,11 +1,13 @@
 import { getTasksAction } from "@/features/tasks/actions/task.actions";
 import { getSchedulesAction, getExceptionsAction } from "@/features/schedule/actions";
+import { fetchExternalEventsAction } from "@/features/calendar/actions";
 import { CalendarClient } from "@/features/tasks/components/calendar-client";
 
 export default async function CalendarPage() {
   const tasks = await getTasksAction();
   const schedules = await getSchedulesAction();
   const exceptions = await getExceptionsAction();
+  const externalEvents = await fetchExternalEventsAction();
 
   return (
     <div className="max-w-4xl mx-auto w-full px-4 py-8 md:py-12">
@@ -14,11 +16,16 @@ export default async function CalendarPage() {
           Calendario
         </h1>
         <p className="text-lg text-muted-foreground mt-2 font-light">
-          Próximas tareas y horarios recurrentes.
+          Próximas tareas, horarios y eventos externos.
         </p>
       </header>
       
-      <CalendarClient tasks={tasks} schedules={schedules} exceptions={exceptions} />
+      <CalendarClient 
+        tasks={tasks} 
+        schedules={schedules} 
+        exceptions={exceptions} 
+        externalEvents={externalEvents} 
+      />
     </div>
   );
 }

@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { createTaskAction } from '../actions/task.actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Loader2, Tag, AlertCircle, Calendar } from 'lucide-react';
+import { Plus, Loader2, Tag, AlertCircle, Calendar, Battery } from 'lucide-react';
 
 export function TaskForm({ categories = [] }: { categories?: any[] }) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<"low"|"medium"|"high"|"urgent">('medium');
+  const [energyLevel, setEnergyLevel] = useState<"low"|"medium"|"high">('medium');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +21,7 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
     setIsLoading(true);
     const catId = categoryId === '' ? null : Number(categoryId);
     const parsedDate = dueDate ? new Date(dueDate) : null;
-    const result = await createTaskAction(title, priority, catId, parsedDate);
+    const result = await createTaskAction(title, priority, energyLevel, catId, parsedDate);
 
     if (result.success) {
       setTitle(''); 
@@ -77,6 +78,19 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
             <option value="medium">Media</option>
             <option value="high">Alta</option>
             <option value="urgent">Urgente</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Battery className="w-4 h-4" />
+          <select 
+            className="bg-transparent outline-none focus:text-foreground cursor-pointer"
+            value={energyLevel}
+            onChange={(e) => setEnergyLevel(e.target.value as any)}
+            disabled={isLoading}
+          >
+            <option value="low">Energía Baja</option>
+            <option value="medium">Energía Media</option>
+            <option value="high">Energía Alta</option>
           </select>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
