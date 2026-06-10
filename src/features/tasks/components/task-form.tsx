@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { createTaskAction } from '../actions/task.actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Loader2, Tag, AlertCircle } from 'lucide-react';
+import { Plus, Loader2, Tag, AlertCircle, Calendar } from 'lucide-react';
 
 export function TaskForm({ categories = [] }: { categories?: any[] }) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<"low"|"medium"|"high"|"urgent">('medium');
   const [categoryId, setCategoryId] = useState<number | ''>('');
+  const [dueDate, setDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,10 +19,12 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
 
     setIsLoading(true);
     const catId = categoryId === '' ? null : Number(categoryId);
-    const result = await createTaskAction(title, priority, catId);
+    const parsedDate = dueDate ? new Date(dueDate) : null;
+    const result = await createTaskAction(title, priority, catId, parsedDate);
 
     if (result.success) {
       setTitle(''); 
+      setDueDate('');
     }
     setIsLoading(false);
   };
@@ -47,7 +50,7 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
         </Button>
       </div>
       
-      <div className="flex gap-4 px-1 mt-1">
+      <div className="flex flex-wrap gap-4 px-1 mt-1">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Tag className="w-4 h-4" />
           <select 
@@ -75,6 +78,16 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
             <option value="high">Alta</option>
             <option value="urgent">Urgente</option>
           </select>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="w-4 h-4" />
+          <input 
+            type="date"
+            className="bg-transparent outline-none focus:text-foreground cursor-pointer font-sans"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={isLoading}
+          />
         </div>
       </div>
     </form>

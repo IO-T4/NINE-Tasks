@@ -19,9 +19,34 @@ export async function createCategoryAction(name: string, color: string = "blue")
   try {
     const [newCat] = await db.insert(categories).values({ name, color }).returning();
     revalidatePath('/');
+    revalidatePath('/projects');
     return { success: true, category: newCat };
   } catch (error) {
     console.error("Error al crear categoría:", error);
+    return { success: false };
+  }
+}
+
+export async function deleteCategoryAction(id: number) {
+  try {
+    await db.delete(categories).where(eq(categories.id, id));
+    revalidatePath('/');
+    revalidatePath('/projects');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar categoría:", error);
+    return { success: false };
+  }
+}
+
+export async function updateCategoryAction(id: number, name: string, color: string) {
+  try {
+    await db.update(categories).set({ name, color }).where(eq(categories.id, id));
+    revalidatePath('/');
+    revalidatePath('/projects');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar categoría:", error);
     return { success: false };
   }
 }
@@ -60,7 +85,8 @@ export async function getTasksAction() {
 export async function createTaskAction(
   title: string, 
   priority: "low" | "medium" | "high" | "urgent" = "medium",
-  categoryId?: number | null
+  categoryId?: number | null,
+  dueDate?: Date | null
 ) {
   try {
     if (!title.trim()) throw new Error("El título es obligatorio");
@@ -69,6 +95,7 @@ export async function createTaskAction(
       title,
       priority,
       categoryId: categoryId || null,
+      dueDate: dueDate || null,
       status: "todo"
     });
 

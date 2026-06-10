@@ -13,6 +13,7 @@ type TaskProps = {
     priority: string;
     createdAt: Date;
     categoryName?: string | null;
+    timeSpentSeconds?: number;
   };
 };
 
@@ -40,6 +41,15 @@ export function TaskItem({ task }: TaskProps) {
     medium: "text-amber-500",
     high: "text-orange-500",
     urgent: "text-destructive",
+  };
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
   };
 
   return (
@@ -81,6 +91,11 @@ export function TaskItem({ task }: TaskProps) {
       </div>
 
       <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">
+        {(task.timeSpentSeconds || 0) > 0 && (
+          <span className="text-xs font-semibold text-primary/80 bg-primary/10 px-2 py-1 rounded-md shrink-0 border border-primary/20">
+            {formatTime(task.timeSpentSeconds!)}
+          </span>
+        )}
         <span className="text-xs text-muted-foreground/70 font-mono shrink-0">
           Añadida: {task.createdAt.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
         </span>

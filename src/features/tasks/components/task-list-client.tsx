@@ -13,6 +13,10 @@ export function TaskListClient({ groupedTasks }: TaskListClientProps) {
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set());
   const [isPending, setIsPending] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
   const toggleSelection = (taskId: number) => {
     const newSet = new Set(selectedTaskIds);
     if (newSet.has(taskId)) {
@@ -27,7 +31,7 @@ export function TaskListClient({ groupedTasks }: TaskListClientProps) {
     if (selectedTaskIds.size === 0) return;
     setIsPending(true);
     await startTimerAction(Array.from(selectedTaskIds));
-    setSelectedTaskIds(newSet => { newSet.clear(); return newSet; }); // Unselect after starting to clean UI
+    setSelectedTaskIds(newSet => { newSet.clear(); return newSet; }); 
     setIsPending(false);
   };
 
@@ -39,6 +43,25 @@ export function TaskListClient({ groupedTasks }: TaskListClientProps) {
 
   // Find if any task globally is playing right now
   const playingTasks = Object.values(groupedTasks).flat().filter(t => t.timerStatus === "playing");
+
+  // Apply filters
+  const filteredGroupedTasks: Record<string, any[]> = {};
+  for (const [category, tasks] of Object.entries(groupedTasks)) {
+    const filteredTasks = tasks.filter(task => {
+      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
+      const matchesStatus = 
+        statusFilter === "all" || 
+        (statusFilter === "done" && task.isCompleted) || 
+        (statusFilter === "todo" && !task.isCompleted);
+      
+      return matchesSearch && matchesPriority && matchesStatus;
+    });
+
+    if (filteredTasks.length > 0) {
+      filteredGroupedTasks[category] = filteredTasks;
+    }
+  }
 
   return (
     <>
@@ -75,32 +98,69 @@ export function TaskListClient({ groupedTasks }: TaskListClientProps) {
         </div>
       )}
 
+      {/* Filters UI */}
+      <div className="flex flex-wrap gap-3 mb-8 p-4 border rounded-2xl bg-card/50">
+        <input 
+          type="text" 
+          placeholder="Buscar tareas..." 
+          className="px-4 py-2 rounded-lg border bg-background flex-1 min-w-[200px] focus:outline-none focus:ring-1 focus:ring-primary"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        <select 
+          className="px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          value={priorityFilter}
+          onChange={e => setPriorityFilter(e.target.value)}
+        >
+          <option value="all">Todas las prioridades</option>
+          <option value="low">Baja</option>
+          <option value="medium">Media</option>
+          <option value="high">Alta</option>
+          <option value="urgent">Urgente</option>
+        </select>
+        <select 
+          className="px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+        >
+          <option value="all">Todos los estados</option>
+          <option value="todo">Pendientes</option>
+          <option value="done">Completadas</option>
+        </select>
+      </div>
+
       <div className="space-y-10">
-        {Object.entries(groupedTasks).map(([category, catTasks]) => (
-          <div key={category} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-foreground/80">
-              <Folder className="w-5 h-5 text-primary" /> {category}
-              <span className="text-sm font-normal text-muted-foreground ml-2">
-                ({catTasks.filter(t => t.isCompleted).length}/{catTasks.length})
-              </span>
-            </h2>
-            <div className="space-y-3">
-              {catTasks.map((task) => (
-                <div key={task.id} className="flex items-center gap-3">
-                  <input 
-                    type="checkbox" 
-                    className="w-5 h-5 rounded border-border text-primary cursor-pointer focus:ring-primary/50 shrink-0"
-                    checked={selectedTaskIds.has(task.id)}
-                    onChange={() => toggleSelection(task.id)}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <TaskItem task={task} />
-                  </div>
-                </div>
-              ))}
-            </div>
+        {Object.keys(filteredGroupedTasks).length === 0 ? (
+          <div className="text-center text-muted-foreground py-10">
+            No hay tareas que coincidan con los filtros.
           </div>
-        ))}
+        ) : (
+          Object.entries(filteredGroupedTasks).map(([category, catTasks]) => (
+            <div key={category} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-foreground/80">
+                <Folder className="w-5 h-5 text-primary" /> {category}
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  ({catTasks.filter(t => t.isCompleted).length}/{catTasks.length})
+                </span>
+              </h2>
+              <div className="space-y-3">
+                {catTasks.map((task) => (
+                  <div key={task.id} className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 rounded border-border text-primary cursor-pointer focus:ring-primary/50 shrink-0"
+                      checked={selectedTaskIds.has(task.id)}
+                      onChange={() => toggleSelection(task.id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <TaskItem task={task} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </>
   );

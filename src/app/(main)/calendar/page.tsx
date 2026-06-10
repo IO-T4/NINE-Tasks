@@ -1,10 +1,11 @@
 import { getTasksAction } from "@/features/tasks/actions/task.actions";
-import { TaskItem } from "@/features/tasks/components/task-item";
-import { CalendarDays } from "lucide-react";
+import { getSchedulesAction, getExceptionsAction } from "@/features/schedule/actions";
+import { CalendarClient } from "@/features/tasks/components/calendar-client";
 
 export default async function CalendarPage() {
   const tasks = await getTasksAction();
-  const tasksWithDueDates = tasks.filter(t => t.dueDate).sort((a,b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
+  const schedules = await getSchedulesAction();
+  const exceptions = await getExceptionsAction();
 
   return (
     <div className="max-w-4xl mx-auto w-full px-4 py-8 md:py-12">
@@ -13,22 +14,11 @@ export default async function CalendarPage() {
           Calendario
         </h1>
         <p className="text-lg text-muted-foreground mt-2 font-light">
-          Próximas tareas ordenadas por fecha de vencimiento.
+          Próximas tareas y horarios recurrentes.
         </p>
       </header>
       
-      <div className="space-y-4">
-        {tasksWithDueDates.length === 0 ? (
-          <div className="text-center py-16 px-6 border-2 border-dashed rounded-3xl bg-muted/20">
-            <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium text-muted-foreground">No hay tareas con fecha asignada.</p>
-          </div>
-        ) : (
-          tasksWithDueDates.map(task => (
-            <TaskItem key={task.id} task={task as any} />
-          ))
-        )}
-      </div>
+      <CalendarClient tasks={tasks} schedules={schedules} exceptions={exceptions} />
     </div>
   );
 }
