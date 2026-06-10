@@ -27,11 +27,15 @@ export async function createScheduleAction(data: {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  startDate?: string;
+  endDate?: string;
   categoryId?: number;
 }) {
   try {
     await db.insert(schedules).values({
       ...data,
+      startDate: data.startDate || null,
+      endDate: data.endDate || null,
       categoryId: data.categoryId || null
     });
     await addXPAction(20); // 20 XP for setting up a routine
@@ -62,6 +66,29 @@ export async function deleteScheduleAction(id: number) {
     revalidatePath("/schedule");
     return { success: true };
   } catch (e) {
+    return { success: false };
+  }
+}
+
+export async function updateScheduleAction(id: number, data: {
+  title: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  startDate?: string;
+  endDate?: string;
+  categoryId?: number;
+}) {
+  try {
+    await db.update(schedules).set({
+      ...data,
+      startDate: data.startDate || null,
+      endDate: data.endDate || null,
+      categoryId: data.categoryId || null
+    }).where(eq(schedules.id, id));
+    revalidatePath("/schedule");
+    return { success: true };
+  } catch (error) {
     return { success: false };
   }
 }

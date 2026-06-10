@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { createCategoryAction, updateCategoryAction, deleteCategoryAction } from "../actions/task.actions";
-import { FolderKanban, Plus, Trash2, Edit2, Check, X, Loader2 } from "lucide-react";
+import { FolderKanban, Plus, Trash2, Edit2, Check, X, Loader2, ArrowRight } from "lucide-react";
+import { PREDEFINED_COLORS, getColorHex } from "@/lib/colors";
+import Link from "next/link";
 
 type ProjectManagerClientProps = {
   categories: any[];
@@ -15,8 +17,6 @@ export function ProjectManagerClient({ categories, tasks }: ProjectManagerClient
   const [name, setName] = useState("");
   const [color, setColor] = useState("blue");
   const [isPending, setIsPending] = useState(false);
-
-  const colors = ["blue", "red", "green", "purple", "orange", "yellow", "pink", "indigo"];
 
   const handleCreate = async () => {
     if (!name.trim()) return;
@@ -38,13 +38,17 @@ export function ProjectManagerClient({ categories, tasks }: ProjectManagerClient
     setIsPending(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsPending(true);
     await deleteCategoryAction(id);
     setIsPending(false);
   };
 
-  const startEdit = (cat: any) => {
+  const startEdit = (cat: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setEditingId(cat.id);
     setName(cat.name);
     setColor(cat.color);
@@ -82,13 +86,15 @@ export function ProjectManagerClient({ categories, tasks }: ProjectManagerClient
               onChange={(e) => setName(e.target.value)}
               disabled={isPending}
             />
-            <div className="flex flex-wrap gap-3">
-              {colors.map(c => (
+            <div className="flex flex-wrap gap-2">
+              {PREDEFINED_COLORS.map(c => (
                 <button
-                  key={c}
+                  key={c.id}
                   type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'border-foreground scale-110' : 'border-transparent hover:scale-110'} bg-${c}-500`}
+                  title={c.name}
+                  onClick={() => setColor(c.id)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${color === c.id ? 'border-foreground scale-110 shadow-md' : 'border-transparent hover:scale-110'}`}
+                  style={{ backgroundColor: c.value }}
                 />
               ))}
             </div>
@@ -125,34 +131,39 @@ export function ProjectManagerClient({ categories, tasks }: ProjectManagerClient
             const completedTasks = projectTasks.filter(t => t.isCompleted).length;
             const progress = projectTasks.length > 0 ? Math.round((completedTasks / projectTasks.length) * 100) : 0;
             const isCompleted = cat.isCompleted || (projectTasks.length > 0 && completedTasks === projectTasks.length);
+            const hexColor = getColorHex(cat.color);
 
             return (
-              <div key={cat.id} className={`p-6 border rounded-3xl bg-card shadow-sm transition-all group ${isCompleted ? 'opacity-60 grayscale' : 'hover:border-primary/50'}`}>
+              <Link href={`/projects/${cat.id}`} key={cat.id} className={`block p-6 border rounded-3xl bg-card shadow-sm transition-all group ${isCompleted ? 'opacity-60 grayscale' : 'hover:border-primary/50'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full bg-${cat.color}-500`} />
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: hexColor }} />
                     <h2 className={`text-xl font-bold ${isCompleted ? 'line-through' : ''}`}>{cat.name}</h2>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                    <button onClick={() => startEdit(cat)} className="text-muted-foreground hover:text-foreground">
+                    <button onClick={(e) => startEdit(cat, e)} className="p-2 text-muted-foreground hover:text-foreground bg-background rounded-full">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(cat.id)} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={(e) => handleDelete(cat.id, e)} className="p-2 text-muted-foreground hover:text-destructive bg-background rounded-full">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>{completedTasks} / {projectTasks.length} tareas</span>
                     <span>{progress}%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                    <div className={`h-2 rounded-full transition-all bg-${cat.color}-500`} style={{ width: `${progress}%` }} />
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: hexColor }} />
                   </div>
                 </div>
-              </div>
+                
+                <div className="flex items-center text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors mt-4">
+                  Abrir Kanban <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-10px] group-hover:translate-x-0" />
+                </div>
+              </Link>
             );
           })
         )}

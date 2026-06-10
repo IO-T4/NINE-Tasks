@@ -1,10 +1,11 @@
 import { db } from "@/lib/db/client";
 import { sessions } from "@/lib/db/schema";
 import { getCurrentUser, updateDeviceRoleAction, revokeSessionAction } from "@/features/auth/actions";
-import { getExternalCalendarsAction, addExternalCalendarAction, deleteExternalCalendarAction } from "@/features/calendar/actions";
+import { getExternalCalendarsAction, addExternalCalendarAction, deleteExternalCalendarAction, updateExternalCalendarColorAction } from "@/features/calendar/actions";
 import { Shield, ShieldAlert, MonitorSmartphone, Globe, LogOut } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { PREDEFINED_COLORS, getColorHex } from "@/lib/colors";
 
 export default async function AdminDevicesPage() {
   const currentUser = await getCurrentUser();
@@ -121,9 +122,13 @@ export default async function AdminDevicesPage() {
             <label className="text-sm font-medium">URL (.ics)</label>
             <input required name="url" type="url" placeholder="https://..." className="w-full px-4 py-3 rounded-xl bg-background border outline-none focus:border-primary" />
           </div>
-          <div className="w-full md:w-32 space-y-2">
+          <div className="w-full md:w-48 space-y-2">
             <label className="text-sm font-medium">Color</label>
-            <input required name="color" type="color" defaultValue="#6366f1" className="w-full h-[50px] p-1 rounded-xl bg-background border cursor-pointer" />
+            <select name="color" className="w-full px-4 py-3 rounded-xl bg-background border outline-none focus:border-primary" defaultValue="blue">
+              {PREDEFINED_COLORS.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
           <button type="submit" className="w-full md:w-auto bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium hover:bg-primary/90 flex items-center justify-center">
             Añadir
@@ -135,25 +140,46 @@ export default async function AdminDevicesPage() {
         {externalCals.length === 0 ? (
           <p className="text-muted-foreground">No hay calendarios externos configurados.</p>
         ) : (
-          externalCals.map((cal) => (
-            <div key={cal.id} className="p-5 rounded-2xl border bg-card flex flex-col sm:flex-row sm:items-center gap-4 transition-all hover:border-primary/30">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: cal.color + '20', color: cal.color }}>
-                <Globe className="w-6 h-6" />
+          externalCals.map((cal) => {
+            const hex = getColorHex(cal.color);
+            return (
+              <div key={cal.id} className="p-5 rounded-2xl border bg-card flex flex-col md:flex-row md:items-center gap-4 transition-all hover:border-primary/30">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: hex + '20', color: hex }}>
+                    <Globe className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-lg">{cal.name}</p>
+                    <p className="text-sm text-muted-foreground truncate max-w-xs sm:max-w-md">{cal.url}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <form action={async (formData: FormData) => {
+                    "use server";
+                    const newColor = formData.get("color") as string;
+                    await updateExternalCalendarColorAction(cal.id, newColor);
+                  }} className="flex items-center gap-2">
+                    <select name="color" defaultValue={cal.color} className="px-3 py-2 rounded-xl bg-background border outline-none text-sm w-36">
+                      {PREDEFINED_COLORS.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    <button type="submit" className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-all text-sm font-medium">
+                      Guardar
+                    </button>
+                  </form>
+                  <form action={async () => {
+                    "use server";
+                    await deleteExternalCalendarAction(cal.id);
+                  }}>
+                    <button type="submit" className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all">
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-lg">{cal.name}</p>
-                <p className="text-sm text-muted-foreground truncate">{cal.url}</p>
-              </div>
-              <form action={async () => {
-                "use server";
-                await deleteExternalCalendarAction(cal.id);
-              }}>
-                <button type="submit" className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all">
-                  Eliminar
-                </button>
-              </form>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -14,18 +14,23 @@ import {
   X,
   LogOut,
   LayoutDashboard,
-  BarChart
+  BarChart,
+  Archive
 } from "lucide-react";
 
 import { logoutAction } from "@/features/auth/actions";
 import { Zap, Trophy } from "lucide-react";
+import { ScratchpadSidebar } from "@/features/notes/components/scratchpad-sidebar";
+
+import { WeekendToggle } from "./weekend-toggle";
 
 type SidebarProps = {
   userRole?: string;
   profile?: any;
+  scratchpadContent?: string;
 };
 
-export function Sidebar({ userRole, profile }: SidebarProps) {
+export function Sidebar({ userRole, profile, scratchpadContent = "" }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -34,9 +39,12 @@ export function Sidebar({ userRole, profile }: SidebarProps) {
     { href: "/board", label: "Kanban", icon: LayoutDashboard },
     { href: "/focus", label: "Focus 7 Días", icon: Zap },
     { href: "/stats", label: "Estadísticas", icon: BarChart },
+    { href: "/milestones", label: "Metas Maestras", icon: Trophy },
     { href: "/projects", label: "Proyectos", icon: FolderKanban },
     { href: "/calendar", label: "Calendario", icon: CalendarDays },
     { href: "/schedule", label: "Horario", icon: Clock },
+    { href: "/weekly-review", label: "Weekly Review", icon: ShieldCheck },
+    { href: "/archive", label: "Archivo Histórico", icon: Archive },
   ];
 
   if (userRole === "admin") {
@@ -51,6 +59,7 @@ export function Sidebar({ userRole, profile }: SidebarProps) {
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-4">
         <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
         <div className="flex items-center gap-2">
+          <WeekendToggle />
           <ThemeToggle />
           <button onClick={toggle} className="p-2 rounded-xl bg-card border">
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -74,7 +83,10 @@ export function Sidebar({ userRole, profile }: SidebarProps) {
         <div className="p-6 hidden md:flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="font-extrabold tracking-tighter text-2xl">NINE Tasks</div>
-            <ThemeToggle />
+            <div className="flex gap-2">
+              <WeekendToggle />
+              <ThemeToggle />
+            </div>
           </div>
           {profile && (
             <div className="bg-primary/5 border rounded-2xl p-4 mt-2">
@@ -150,7 +162,9 @@ export function Sidebar({ userRole, profile }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border/50">
+        <ScratchpadSidebar initialContent={scratchpadContent} />
+
+        <div className="p-4 border-t border-border/50 mt-auto">
           <form action={logoutAction}>
             <button
               type="submit"

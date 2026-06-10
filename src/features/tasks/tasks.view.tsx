@@ -1,4 +1,5 @@
 import { getTasksAction, getCategoriesAction } from './actions/task.actions';
+import { getMilestonesAction } from '@/features/milestones/actions';
 import { TaskForm } from './components/task-form';
 import { TaskListClient } from './components/task-list-client';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -8,14 +9,17 @@ import { logoutAction } from '@/features/auth/actions';
 export async function TasksView() {
   const tasks = await getTasksAction();
   const categories = await getCategoriesAction();
+  const milestones = await getMilestonesAction();
 
   // Dashboard Stats
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.isCompleted).length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Group tasks by category
-  const groupedTasks = tasks.reduce((acc, task) => {
+  // Group ONLY top-level tasks by category
+  const topLevelTasks = tasks.filter(t => !t.parentId);
+  
+  const groupedTasks = topLevelTasks.reduce((acc, task) => {
     const catName = task.categoryName || 'Sin Categoría';
     if (!acc[catName]) acc[catName] = [];
     acc[catName].push(task);
@@ -77,7 +81,7 @@ export async function TasksView() {
       </section>
 
       <section className="mb-12">
-        <TaskForm categories={categories} />
+        <TaskForm categories={categories} milestones={milestones} />
       </section>
 
       <section>
@@ -87,7 +91,7 @@ export async function TasksView() {
             <p className="text-sm mt-1">¡Añade tu primer proyecto o tarea!</p>
           </div>
         ) : (
-          <TaskListClient groupedTasks={groupedTasks} />
+          <TaskListClient groupedTasks={groupedTasks} allTasks={tasks} />
         )}
       </section>
     </div>

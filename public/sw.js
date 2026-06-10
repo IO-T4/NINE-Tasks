@@ -1,49 +1,22 @@
-const CACHE_NAME = 'nine-tasks-cache-v2';
-const OFFLINE_URL = '/';
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        OFFLINE_URL,
-        '/manifest.json'
-      ]);
-    })
-  );
+self.addEventListener('install', function(e) {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((response) => {
-          if (response) return response;
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    self.registration.unregister()
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll())
+      .then((clients) => {
+        clients.forEach(client => {
+          if (client.url && "navigate" in client) {
+            client.navigate(client.url);
           }
-          return new Response('Offline content not available');
         });
       })
   );
 });
+
+// DO NOT INTERCEPT FETCH!
+// Without a fetch listener, the SW doesn't do anything to network requests.
+// Wait, to be completely transparent, we just don't add a fetch listener!

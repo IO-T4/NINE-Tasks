@@ -1,6 +1,6 @@
-import { getTasksAction } from "@/features/tasks/actions/task.actions";
+import { getTasksAction, getCategoriesAction } from "@/features/tasks/actions/task.actions";
 import { getSchedulesAction, getExceptionsAction } from "@/features/schedule/actions";
-import { fetchExternalEventsAction } from "@/features/calendar/actions";
+import { fetchExternalEventsAction, getCalendarEventsAction } from "@/features/calendar/actions";
 import { CalendarClient } from "@/features/tasks/components/calendar-client";
 
 export default async function CalendarPage() {
@@ -8,6 +8,8 @@ export default async function CalendarPage() {
   const schedules = await getSchedulesAction();
   const exceptions = await getExceptionsAction();
   const externalEvents = await fetchExternalEventsAction();
+  const manualEvents = await getCalendarEventsAction();
+  const categories = await getCategoriesAction();
 
   return (
     <div className="max-w-4xl mx-auto w-full px-4 py-8 md:py-12">
@@ -24,7 +26,9 @@ export default async function CalendarPage() {
         tasks={tasks} 
         schedules={schedules} 
         exceptions={exceptions} 
-        externalEvents={externalEvents} 
+        externalEvents={externalEvents}
+        manualEvents={manualEvents}
+        categories={categories}
       />
     </div>
   );

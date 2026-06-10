@@ -60,6 +60,11 @@
   .dark[data-accent="amber"] { --accent-color: #f59e0b; }
 }
 
+/* Weekend Mode - Aplicado al body para que afecte a toda la app */
+html[data-weekend="true"] body {
+  filter: saturate(10%) sepia(20%) opacity(90%);
+}
+
 @layer base {
   * {
     border-color: var(--border);

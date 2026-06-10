@@ -19,6 +19,15 @@ export const categories = pgTable("categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const milestones = pgTable("milestones", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  targetDate: timestamp("target_date"),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -28,7 +37,13 @@ export const tasks = pgTable("tasks", {
   energyLevel: text("energy_level", { enum: ["low", "medium", "high"] }).default("medium").notNull(),
   dueDate: timestamp("due_date"),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: 'set null' }),
+  milestoneId: integer("milestone_id").references(() => milestones.id, { onDelete: 'set null' }),
+  parentId: integer("parent_id").references((): any => tasks.id, { onDelete: 'cascade' }),
   isCompleted: boolean("is_completed").default(false).notNull(),
+  orderIndex: integer("order_index").default(0).notNull(),
+  isArchived: boolean("is_archived").default(false).notNull(),
+  isPinned: boolean("is_pinned").default(false).notNull(),
+  isMicroTask: boolean("is_micro_task").default(false).notNull(),
   
   // Time tracking fields
   timeSpentSeconds: integer("time_spent_seconds").default(0).notNull(),
@@ -77,6 +92,23 @@ export const externalCalendars = pgTable("external_calendars", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   url: text("url").notNull(),
-  color: text("color").default("gray").notNull(),
+  color: text("color").default("blue").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const calendarEvents = pgTable("calendar_events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startAt: timestamp("start_at").notNull(),
+  endAt: timestamp("end_at").notNull(),
+  color: text("color").default("blue").notNull(),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const scratchpad = pgTable("scratchpad", {
+  id: serial("id").primaryKey(), // We only use id=1
+  content: text("content").default("").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

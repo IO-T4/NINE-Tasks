@@ -4,14 +4,16 @@ import { useState } from 'react';
 import { createTaskAction } from '../actions/task.actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Loader2, Tag, AlertCircle, Calendar, Battery } from 'lucide-react';
+import { Plus, Loader2, Tag, AlertCircle, Calendar, Battery, Trophy, Zap } from 'lucide-react';
 
-export function TaskForm({ categories = [] }: { categories?: any[] }) {
+export function TaskForm({ categories = [], milestones = [], defaultCategoryId }: { categories?: any[], milestones?: any[], defaultCategoryId?: number }) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<"low"|"medium"|"high"|"urgent">('medium');
   const [energyLevel, setEnergyLevel] = useState<"low"|"medium"|"high">('medium');
-  const [categoryId, setCategoryId] = useState<number | ''>('');
+  const [categoryId, setCategoryId] = useState<number | ''>(defaultCategoryId ?? '');
+  const [milestoneId, setMilestoneId] = useState<number | ''>('');
   const [dueDate, setDueDate] = useState('');
+  const [isMicroTask, setIsMicroTask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,12 +22,14 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
 
     setIsLoading(true);
     const catId = categoryId === '' ? null : Number(categoryId);
+    const mId = milestoneId === '' ? null : Number(milestoneId);
     const parsedDate = dueDate ? new Date(dueDate) : null;
-    const result = await createTaskAction(title, priority, energyLevel, catId, parsedDate);
+    const result = await createTaskAction(title, priority, energyLevel, catId, parsedDate, null, mId, isMicroTask);
 
     if (result.success) {
       setTitle(''); 
       setDueDate('');
+      setIsMicroTask(false);
     }
     setIsLoading(false);
   };
@@ -52,6 +56,30 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
       </div>
       
       <div className="flex flex-wrap gap-4 px-1 mt-1">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <input 
+            type="date" 
+            className="bg-transparent text-sm outline-none text-muted-foreground focus:text-foreground cursor-pointer"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsMicroTask(!isMicroTask)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-medium transition-all ${
+            isMicroTask 
+              ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' 
+              : 'bg-card text-muted-foreground hover:bg-muted'
+          }`}
+          title="Marcar como Micro-tarea (Modo 5 minutos)"
+        >
+          <Zap className="w-4 h-4" /> 5 Min
+        </button>
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Tag className="w-4 h-4" />
           <select 
@@ -66,6 +94,22 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
             ))}
           </select>
         </div>
+        {milestones.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            <select 
+              className="bg-transparent outline-none focus:text-foreground cursor-pointer"
+              value={milestoneId}
+              onChange={(e) => setMilestoneId(e.target.value as any)}
+              disabled={isLoading}
+            >
+              <option value="">Sin Meta</option>
+              {milestones.map((m:any) => (
+                <option key={m.id} value={m.id}>{m.title}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <AlertCircle className="w-4 h-4" />
           <select 
@@ -93,16 +137,7 @@ export function TaskForm({ categories = [] }: { categories?: any[] }) {
             <option value="high">Energía Alta</option>
           </select>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <input 
-            type="date"
-            className="bg-transparent outline-none focus:text-foreground cursor-pointer font-sans"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
+
       </div>
     </form>
   );

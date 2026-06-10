@@ -37,7 +37,7 @@ export function FocusClient({ tasks }: { tasks: any[] }) {
             ⚠️ Tareas Atrasadas
           </h2>
           <div className="space-y-3">
-            {overdueTasks.map(t => <TaskItem key={t.id} task={t} />)}
+            {overdueTasks.map(t => <TaskItem key={t.id} task={t} allTasks={tasks} />)}
           </div>
         </section>
       )}
@@ -53,7 +53,7 @@ export function FocusClient({ tasks }: { tasks: any[] }) {
           </div>
         ) : (
           <div className="space-y-3">
-            {upcomingTasks.map(t => <TaskItem key={t.id} task={t} />)}
+            {upcomingTasks.map(t => <TaskItem key={t.id} task={t} allTasks={tasks} />)}
           </div>
         )}
       </section>

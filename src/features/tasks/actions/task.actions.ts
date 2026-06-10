@@ -71,10 +71,17 @@ export async function getTasksAction() {
         categoryColor: categories.color,
         timerStatus: tasks.timerStatus,
         timeSpentSeconds: tasks.timeSpentSeconds,
+        parentId: tasks.parentId,
+        orderIndex: tasks.orderIndex,
+        milestoneId: tasks.milestoneId,
+        isArchived: tasks.isArchived,
+        isPinned: tasks.isPinned,
+        isMicroTask: tasks.isMicroTask,
       })
       .from(tasks)
       .leftJoin(categories, eq(tasks.categoryId, categories.id))
-      .orderBy(desc(tasks.createdAt));
+      .where(eq(tasks.isArchived, false))
+      .orderBy(tasks.orderIndex, desc(tasks.createdAt));
       
     return allTasks;
   } catch (error) {
@@ -83,12 +90,65 @@ export async function getTasksAction() {
   }
 }
 
+export async function toggleTaskPinAction(id: number, isPinned: boolean) {
+  try {
+    await db.update(tasks).set({ isPinned }).where(eq(tasks.id, id));
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+export async function getArchivedTasksAction() {
+  try {
+    const allTasks = await db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        isCompleted: tasks.isCompleted,
+        status: tasks.status,
+        priority: tasks.priority,
+        dueDate: tasks.dueDate,
+        createdAt: tasks.createdAt,
+        categoryId: tasks.categoryId,
+        categoryName: categories.name,
+        categoryColor: categories.color,
+        isArchived: tasks.isArchived,
+      })
+      .from(tasks)
+      .leftJoin(categories, eq(tasks.categoryId, categories.id))
+      .where(eq(tasks.isArchived, true))
+      .orderBy(desc(tasks.createdAt));
+      
+    return allTasks;
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function archiveTasksAction(ids: number[], archive: boolean = true) {
+  try {
+    for (const id of ids) {
+      await db.update(tasks).set({ isArchived: archive }).where(eq(tasks.id, id));
+    }
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
 export async function createTaskAction(
   title: string, 
   priority: "low" | "medium" | "high" | "urgent",
   energyLevel: "low" | "medium" | "high",
-  categoryId: number | null,
-  dueDate: Date | null
+  categoryId: number | null = null,
+  dueDate: Date | null = null,
+  parentId: number | null = null,
+  milestoneId: number | null = null,
+  isMicroTask: boolean = false
 ) {
   try {
     if (!title.trim()) throw new Error("El título es obligatorio");
@@ -99,8 +159,13 @@ export async function createTaskAction(
       energyLevel,
       categoryId: categoryId || null,
       dueDate: dueDate || null,
+      parentId: parentId || null,
+      milestoneId: milestoneId || null,
+      isMicroTask,
       status: "todo"
     });
+
+    await addXPAction(10); // 10 XP per task created
 
     revalidatePath('/');
     return { success: true };
@@ -130,6 +195,29 @@ export async function toggleTaskAction(id: number, isCompleted: boolean) {
   }
 }
 
+export async function updateTaskTimeAction(id: number, timeSpentSeconds: number) {
+  try {
+    await db.update(tasks).set({ timeSpentSeconds }).where(eq(tasks.id, id));
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+export async function updateTaskStatusAction(id: number, status: "todo" | "in-progress" | "done") {
+  try {
+    const isCompleted = status === "done";
+    await db.update(tasks)
+      .set({ status, isCompleted })
+      .where(eq(tasks.id, id));
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
 export async function deleteTaskAction(id: number) {
   try {
     await db.delete(tasks).where(eq(tasks.id, id));
@@ -137,6 +225,19 @@ export async function deleteTaskAction(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error al eliminar la tarea:", error);
+    return { success: false };
+  }
+}
+
+export async function updateTaskOrderAction(updates: { id: number; orderIndex: number }[]) {
+  try {
+    // Basic bulk update loop
+    for (const u of updates) {
+      await db.update(tasks).set({ orderIndex: u.orderIndex }).where(eq(tasks.id, u.id));
+    }
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
     return { success: false };
   }
 }
