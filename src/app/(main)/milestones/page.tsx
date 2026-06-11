@@ -7,7 +7,7 @@ export default async function MilestonesPage() {
   const tasks = await getTasksAction();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in">
+    <div className="max-w-5xl mx-auto w-full px-4 py-4 md:py-12 space-y-8 animate-in fade-in">
       <div>
         <h1 className="text-4xl font-extrabold tracking-tighter text-primary">Metas a Largo Plazo</h1>
         <p className="text-muted-foreground text-lg mt-2 font-medium">Define tus grandes objetivos y asóciales tareas para medir tu progreso.</p>

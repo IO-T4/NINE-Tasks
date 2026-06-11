@@ -17,7 +17,7 @@ export default async function AdminDevicesPage() {
   const externalCals = await getExternalCalendarsAction();
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4 py-12 md:py-16">
+    <div className="max-w-4xl mx-auto w-full px-4 py-4 md:py-16">
       <header className="mb-12 border-b pb-8 border-border/40">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
           Dispositivos <span className="text-muted-foreground font-light">Autorizados</span>

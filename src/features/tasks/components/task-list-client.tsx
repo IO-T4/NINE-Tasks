@@ -6,6 +6,7 @@ import { Folder, Play, Pause, Clock, GripVertical, Zap } from "lucide-react";
 import { startTimerAction, pauseTimerAction } from "@/features/time-tracker/actions";
 import { updateTaskOrderAction } from "../actions/task.actions";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { AnimatePresence } from "framer-motion";
 
 type TaskListClientProps = {
   groupedTasks: Record<string, any[]>;
@@ -211,32 +212,34 @@ export function TaskListClient({ groupedTasks, allTasks = [] }: TaskListClientPr
                       </span>
                     </h2>
                     <div className="space-y-3">
-                      {catTasks.map((task, index) => (
-                        <Draggable key={task.id} draggableId={task.id.toString()} index={index} isDragDisabled={sortBy !== "manual"}>
-                          {(provided, snapshot) => (
-                            <div 
-                              ref={provided.innerRef} 
-                              {...provided.draggableProps} 
-                              className={`flex items-start gap-3 rounded-2xl ${snapshot.isDragging ? 'z-50 shadow-2xl scale-[1.02] bg-background' : ''}`}
-                            >
-                              <div {...provided.dragHandleProps} className="mt-6 ml-2 text-muted-foreground/30 hover:text-muted-foreground transition-colors cursor-grab active:cursor-grabbing">
-                                <GripVertical className="w-5 h-5" />
+                      <AnimatePresence mode="popLayout">
+                        {catTasks.map((task, index) => (
+                          <Draggable key={task.id} draggableId={task.id.toString()} index={index} isDragDisabled={sortBy !== "manual"}>
+                            {(provided, snapshot) => (
+                              <div 
+                                ref={provided.innerRef} 
+                                {...provided.draggableProps} 
+                                className={`flex items-start gap-3 rounded-2xl ${snapshot.isDragging ? 'z-50 shadow-2xl scale-[1.02] bg-background' : ''}`}
+                              >
+                                <div {...provided.dragHandleProps} className="mt-6 ml-2 text-muted-foreground/30 hover:text-muted-foreground transition-colors cursor-grab active:cursor-grabbing">
+                                  <GripVertical className="w-5 h-5" />
+                                </div>
+                                <div className="mt-6">
+                                  <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 rounded border-border text-primary cursor-pointer focus:ring-primary/50 shrink-0"
+                                    checked={selectedTaskIds.has(task.id)}
+                                    onChange={() => toggleSelection(task.id)}
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <TaskItem task={task} allTasks={allTasks} />
+                                </div>
                               </div>
-                              <div className="mt-6">
-                                <input 
-                                  type="checkbox" 
-                                  className="w-5 h-5 rounded border-border text-primary cursor-pointer focus:ring-primary/50 shrink-0"
-                                  checked={selectedTaskIds.has(task.id)}
-                                  onChange={() => toggleSelection(task.id)}
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <TaskItem task={task} allTasks={allTasks} />
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
+                            )}
+                          </Draggable>
+                        ))}
+                      </AnimatePresence>
                       {provided.placeholder}
                     </div>
                   </div>

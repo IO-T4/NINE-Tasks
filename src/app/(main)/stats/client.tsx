@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { Trophy, CheckCircle, Activity, Zap } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import { Trophy, CheckCircle, Activity, Zap, Lock } from "lucide-react";
 import { format, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 
-export function StatsClient({ tasks, profile }: { tasks: any[], profile: any }) {
+export function StatsClient({ tasks, profile, attributes = [], titles = [], userTitles = [] }: { tasks: any[], profile: any, attributes?: any[], titles?: any[], userTitles?: any[] }) {
   const [isBrowser, setIsBrowser] = useState(false);
   
   useEffect(() => {
@@ -57,6 +59,7 @@ export function StatsClient({ tasks, profile }: { tasks: any[], profile: any }) 
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+      {/* existing stat boxes */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-card border rounded-3xl p-6 shadow-sm">
           <div className="flex items-center gap-3 text-muted-foreground mb-4">
@@ -95,24 +98,94 @@ export function StatsClient({ tasks, profile }: { tasks: any[], profile: any }) 
         </div>
       </div>
 
-      <div className="bg-card border rounded-3xl p-6 shadow-sm">
-        <h3 className="text-xl font-bold mb-6">Actividad (Últimos 7 días)</h3>
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'currentColor', opacity: 0.5 }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'currentColor', opacity: 0.5 }} />
-              <Tooltip 
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                contentStyle={{ borderRadius: '16px', border: 'none', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} 
-              />
-              <Bar dataKey="completadas" radius={[8, 8, 8, 8]}>
-                {stats.chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === stats.chartData.length - 1 ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.4)'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-card border rounded-3xl p-6 shadow-sm">
+          <h3 className="text-xl font-bold mb-6">Actividad (Últimos 7 días)</h3>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'currentColor', opacity: 0.5 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'currentColor', opacity: 0.5 }} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} 
+                />
+                <Bar dataKey="completadas" radius={[8, 8, 8, 8]}>
+                  {stats.chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index === stats.chartData.length - 1 ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.4)'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-card border rounded-3xl p-6 shadow-sm">
+          <h3 className="text-xl font-bold mb-6">Balance Vital (Atributos)</h3>
+          <div className="h-72 w-full">
+            {attributes && attributes.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={attributes}>
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12, opacity: 0.8 }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} 
+                  />
+                  <Radar name="XP Ganada" dataKey="xpEarned" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.5} />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                No hay datos de atributos.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Titulos Vitrine */}
+      <div className="bg-card border rounded-3xl p-6 shadow-sm mt-8">
+        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-amber-500" /> Vitrina de Títulos
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {titles.map((title) => {
+            const isUnlocked = userTitles.some(ut => ut.titleId === title.id);
+            const attribute = attributes.find(a => a.id === title.attributeId);
+            
+            return (
+              <div 
+                key={title.id} 
+                className={`p-4 rounded-2xl border transition-all ${
+                  isUnlocked 
+                    ? 'bg-primary/5 border-primary/20 shadow-sm' 
+                    : 'bg-muted/30 border-dashed opacity-60 grayscale'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className={`font-bold text-lg ${isUnlocked ? 'text-primary' : 'text-muted-foreground'}`}>
+                      {isUnlocked ? title.name : '???'}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {attribute?.name}: {title.requiredTasks} tareas completadas
+                    </p>
+                  </div>
+                  {!isUnlocked && (
+                    <div className="bg-background rounded-full p-2 text-muted-foreground">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                  )}
+                  {isUnlocked && (
+                    <div className="bg-primary/20 rounded-full p-2 text-primary">
+                      <Trophy className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

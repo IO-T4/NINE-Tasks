@@ -5,11 +5,14 @@ import { TaskListClient } from './components/task-list-client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogOut, Folder, LayoutDashboard, CheckCircle2 } from 'lucide-react';
 import { logoutAction } from '@/features/auth/actions';
+import { VisualCore } from '@/components/visual-core';
+import { getProfileAction } from '@/features/profile/actions';
 
 export async function TasksView() {
   const tasks = await getTasksAction();
   const categories = await getCategoriesAction();
   const milestones = await getMilestonesAction();
+  const profile = await getProfileAction();
 
   // Dashboard Stats
   const totalTasks = tasks.length;
@@ -27,7 +30,7 @@ export async function TasksView() {
   }, {} as Record<string, typeof tasks>);
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4 py-12 md:py-16">
+    <div className="max-w-4xl mx-auto w-full px-4 py-4 md:py-16">
       <header className="mb-10 border-b pb-8 border-border/40 relative">
         <div className="absolute top-0 right-0 flex gap-3">
           <ThemeToggle />
@@ -41,12 +44,17 @@ export async function TasksView() {
             </button>
           </form>
         </div>
-        <h1 className="text-4xl font-extrabold tracking-tighter text-foreground md:text-5xl mt-2">
-          NINE <span className="text-muted-foreground font-light">Tasks</span>
-        </h1>
-        <p className="text-xl text-muted-foreground mt-3 max-w-prose font-light">
-          Gestiona tus tareas diarias y proyectos.
-        </p>
+        <div className="flex items-center gap-6 mt-2">
+          <VisualCore xp={profile?.xp || 0} level={profile?.level || 1} />
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tighter text-foreground md:text-5xl">
+              NINE <span className="text-muted-foreground font-light">Tasks</span>
+            </h1>
+            <p className="text-xl text-muted-foreground mt-3 max-w-prose font-light">
+              Gestiona tus tareas diarias y proyectos.
+            </p>
+          </div>
+        </div>
       </header>
 
       {/* Dashboard Analítico */}

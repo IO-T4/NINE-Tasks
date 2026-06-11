@@ -57,13 +57,15 @@ export function Sidebar({ userRole, profile, scratchpadContent = "" }: SidebarPr
     <>
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-4">
-        <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
-        <div className="flex items-center gap-2">
-          <WeekendToggle />
-          <ThemeToggle />
+        <div className="flex items-center gap-3">
           <button onClick={toggle} className="p-2 rounded-xl bg-card border">
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+          <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <WeekendToggle />
+          <ThemeToggle />
         </div>
       </div>
 

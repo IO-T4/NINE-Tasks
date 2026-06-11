@@ -44,6 +44,7 @@ export const tasks = pgTable("tasks", {
   isArchived: boolean("is_archived").default(false).notNull(),
   isPinned: boolean("is_pinned").default(false).notNull(),
   isMicroTask: boolean("is_micro_task").default(false).notNull(),
+  attributeId: integer("attribute_id").references((): any => attributes.id, { onDelete: 'set null' }),
   
   // Time tracking fields
   timeSpentSeconds: integer("time_spent_seconds").default(0).notNull(),
@@ -86,6 +87,7 @@ export const globalProfile = pgTable("global_profile", {
   xp: integer("xp").default(0).notNull(),
   level: integer("level").default(1).notNull(),
   prestige: integer("prestige").default(0).notNull(),
+  activeTitleId: integer("active_title_id").references((): any => titles.id, { onDelete: 'set null' }),
 });
 
 export const externalCalendars = pgTable("external_calendars", {
@@ -111,4 +113,29 @@ export const scratchpad = pgTable("scratchpad", {
   id: serial("id").primaryKey(), // We only use id=1
   content: text("content").default("").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// V4 Gamification
+
+export const attributes = pgTable("attributes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default("blue").notNull(),
+  icon: text("icon").notNull(),
+  xpEarned: integer("xp_earned").default(0).notNull(), // Track lifetime XP for this attribute
+});
+
+export const titles = pgTable("titles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  attributeId: integer("attribute_id").references(() => attributes.id, { onDelete: 'cascade' }).notNull(),
+  requiredTasks: integer("required_tasks").notNull(), // How many tasks to unlock
+});
+
+export const userTitles = pgTable("user_titles", {
+  id: serial("id").primaryKey(),
+  titleId: integer("title_id").references(() => titles.id, { onDelete: 'cascade' }).notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });

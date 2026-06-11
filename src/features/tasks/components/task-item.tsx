@@ -3,6 +3,9 @@ import { Check, Trash2, AlertCircle, Battery, Timer, CornerDownRight, Plus, Load
 import { toggleTaskAction, deleteTaskAction, createTaskAction } from "../actions/task.actions";
 import Link from "next/link";
 
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
+
 type TaskProps = {
   task: {
     id: number;
@@ -17,6 +20,7 @@ type TaskProps = {
     energyLevel?: string;
     isPinned?: boolean;
     isMicroTask?: boolean;
+    attributeId?: number | null;
   };
   allTasks?: any[];
   level?: number;
@@ -30,7 +34,43 @@ export function TaskItem({ task, allTasks = [], level = 0 }: TaskProps) {
 
   const subTasks = allTasks.filter(t => t.parentId === task.id);
 
+  const playSuccessSound = () => {
+    try {
+      // Very short synthetic pop sound for "premium" feel without needing external assets
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // high pitch
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+      // Audio context might fail if user hasn't interacted
+    }
+  };
+
   const handleToggle = () => {
+    if (!task.isCompleted) {
+      playSuccessSound();
+      if (task.priority === 'urgent' || task.priority === 'high') {
+         confetti({
+           particleCount: 50,
+           spread: 60,
+           origin: { y: 0.8 },
+           colors: ['#f59e0b', '#10b981', '#3b82f6']
+         });
+      }
+    }
+    
     startTransition(async () => {
       await toggleTaskAction(task.id, !task.isCompleted);
     });
@@ -86,11 +126,20 @@ export function TaskItem({ task, allTasks = [], level = 0 }: TaskProps) {
   };
 
   return (
-    <div className="flex flex-col w-full">
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col w-full"
+    >
       <div
-        className={`group p-4 sm:p-5 rounded-2xl border bg-card text-card-foreground shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all duration-300 hover:border-primary/30 hover:shadow-md animate-in fade-in slide-in-from-bottom-2 ${
+        className={`group p-4 sm:p-5 rounded-2xl border bg-card text-card-foreground shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 transition-all duration-300 hover:border-primary/30 hover:shadow-md ${
           isPending ? "opacity-50 scale-[0.98]" : ""
-        } ${level > 0 ? "border-l-4 border-l-primary/30" : ""}`}
+        } ${level > 0 ? "border-l-4 border-l-primary/30" : ""} ${
+          task.isCompleted ? "opacity-60 saturate-50" : ""
+        }`}
       >
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <button
@@ -219,6 +268,6 @@ export function TaskItem({ task, allTasks = [], level = 0 }: TaskProps) {
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

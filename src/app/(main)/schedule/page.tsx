@@ -8,7 +8,7 @@ export default async function SchedulePage() {
   const categories = await getCategoriesAction();
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-4 py-8 md:py-12">
+    <div className="max-w-5xl mx-auto w-full px-4 py-4 md:py-12">
       <header className="mb-10 border-b pb-8 border-border/40">
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
           Horario <span className="text-muted-foreground font-light">Semanal</span>

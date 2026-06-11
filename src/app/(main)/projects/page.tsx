@@ -6,7 +6,7 @@ export default async function ProjectsPage() {
   const tasks = await getTasksAction();
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4 py-8 md:py-12">
+    <div className="max-w-4xl mx-auto w-full px-4 py-4 md:py-12">
       <header className="mb-10 border-b pb-8 border-border/40">
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
           Proyectos

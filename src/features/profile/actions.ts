@@ -52,3 +52,40 @@ export async function addXPAction(amount: number) {
     return { success: false };
   }
 }
+
+export async function setActiveTitleAction(titleId: number | null) {
+  try {
+    await db.update(globalProfile).set({ activeTitleId: titleId }).where(eq(globalProfile.id, 1));
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+export async function getAttributesAction() {
+  try {
+    const { attributes } = await import("@/lib/db/schema");
+    return await db.select().from(attributes);
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getTitlesAction() {
+  try {
+    const { titles } = await import("@/lib/db/schema");
+    return await db.select().from(titles);
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getUserTitlesAction() {
+  try {
+    const { userTitles } = await import("@/lib/db/schema");
+    return await db.select().from(userTitles);
+  } catch (error) {
+    return [];
+  }
+}

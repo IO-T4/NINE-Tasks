@@ -77,6 +77,7 @@ export async function getTasksAction() {
         isArchived: tasks.isArchived,
         isPinned: tasks.isPinned,
         isMicroTask: tasks.isMicroTask,
+        attributeId: tasks.attributeId,
       })
       .from(tasks)
       .leftJoin(categories, eq(tasks.categoryId, categories.id))
@@ -148,7 +149,8 @@ export async function createTaskAction(
   dueDate: Date | null = null,
   parentId: number | null = null,
   milestoneId: number | null = null,
-  isMicroTask: boolean = false
+  isMicroTask: boolean = false,
+  attributeId: number | null = null
 ) {
   try {
     if (!title.trim()) throw new Error("El título es obligatorio");
@@ -162,6 +164,7 @@ export async function createTaskAction(
       parentId: parentId || null,
       milestoneId: milestoneId || null,
       isMicroTask,
+      attributeId: attributeId || null,
       status: "todo"
     });
 
@@ -175,16 +178,60 @@ export async function createTaskAction(
   }
 }
 
+import { attributes, titles, userTitles } from '@/lib/db/schema';
+import { sql } from 'drizzle-orm';
+
 export async function toggleTaskAction(id: number, isCompleted: boolean) {
   try {
     const newStatus = isCompleted ? "done" : "todo";
+    
+    // Get task before update to know its attribute
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    if (!task) return { success: false };
+
     await db.update(tasks)
       .set({ isCompleted, status: newStatus })
       .where(eq(tasks.id, id));
       
     if (isCompleted) {
-      // Add 10 XP for completing a task
+      // Add 10 XP globally for completing a task
       await addXPAction(10);
+      
+      if (task.attributeId) {
+        // Add XP to the specific attribute
+        await db.update(attributes)
+          .set({ xpEarned: sql`${attributes.xpEarned} + 10` })
+          .where(eq(attributes.id, task.attributeId));
+
+        // Check if any titles for this attribute can be unlocked
+        const completedTasksCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(tasks)
+          .where(sql`${tasks.attributeId} = ${task.attributeId} AND ${tasks.isCompleted} = true`);
+
+        const count = Number(completedTasksCount[0]?.count || 0);
+
+        // Find titles for this attribute
+        const availableTitles = await db
+          .select()
+          .from(titles)
+          .where(eq(titles.attributeId, task.attributeId));
+
+        for (const title of availableTitles) {
+          if (count >= title.requiredTasks) {
+            // Check if already unlocked
+            const [existing] = await db
+              .select()
+              .from(userTitles)
+              .where(eq(userTitles.titleId, title.id));
+            
+            if (!existing) {
+              await db.insert(userTitles).values({ titleId: title.id });
+              console.log(`Unlocked title: ${title.name}`);
+            }
+          }
+        }
+      }
     }
     
     revalidatePath('/');
@@ -201,7 +248,37 @@ export async function updateTaskTimeAction(id: number, timeSpentSeconds: number)
     revalidatePath('/');
     return { success: true };
   } catch (error) {
+    console.error("Error al actualizar el tiempo de la tarea:", error);
     return { success: false };
+  }
+}
+
+export async function updateTaskAction(
+  id: number,
+  data: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    energyLevel?: string;
+    categoryId?: number | null;
+    dueDate?: string | null;
+    milestoneId?: number | null;
+  }
+) {
+  try {
+    if (data.title && !data.title.trim()) {
+      throw new Error("El título no puede estar vacío");
+    }
+    
+    await db.update(tasks).set({
+      ...data
+    }).where(eq(tasks.id, id));
+    
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar la tarea:", error);
+    return { success: false, error: "No se pudo actualizar la tarea" };
   }
 }
 

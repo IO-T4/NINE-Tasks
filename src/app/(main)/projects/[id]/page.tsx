@@ -29,7 +29,7 @@ export default async function ProjectBoardPage({ params }: { params: Promise<{ i
   const hexColor = getColorHex(category.color);
 
   return (
-    <div className="mx-auto w-full px-4 py-8 md:py-12 flex flex-col h-[calc(100vh-64px)] md:h-screen max-w-full">
+    <div className="mx-auto w-full px-4 py-4 md:py-12 flex flex-col h-[calc(100vh-64px)] md:h-screen max-w-full">
       <header className="mb-6 flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Link href="/projects" className="p-2 border rounded-xl hover:bg-muted transition-colors text-muted-foreground">
