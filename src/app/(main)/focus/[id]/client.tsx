@@ -109,8 +109,8 @@ export function FocusSessionClient({ task, categories = [], milestones = [] }: {
       await updateTaskAction(task.id, {
         title,
         description,
-        priority,
-        energyLevel: energy,
+        priority: priority as "low" | "medium" | "high" | "urgent",
+        energyLevel: energy as "low" | "medium" | "high",
         categoryId: catId,
         milestoneId: mId,
         dueDate: parsedDate ? parsedDate.toISOString() : null,

@@ -22,7 +22,7 @@ export default async function MainLayout({
       <Sidebar userRole={user.role} profile={profile} scratchpadContent={scratchpad.content} />
       
       {/* Main content area */}
-      <main className="flex-1 md:ml-64 w-full pt-16 md:pt-0 min-h-screen overflow-x-hidden">
+      <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8 overflow-y-auto overflow-x-hidden w-full">
         {children}
       </main>
     </div>

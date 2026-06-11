@@ -258,8 +258,8 @@ export async function updateTaskAction(
   data: {
     title?: string;
     description?: string;
-    priority?: string;
-    energyLevel?: string;
+    priority?: "low" | "medium" | "high" | "urgent";
+    energyLevel?: "low" | "medium" | "high";
     categoryId?: number | null;
     dueDate?: string | null;
     milestoneId?: number | null;
@@ -270,9 +270,12 @@ export async function updateTaskAction(
       throw new Error("El título no puede estar vacío");
     }
     
-    await db.update(tasks).set({
-      ...data
-    }).where(eq(tasks.id, id));
+    const updateData: any = { ...data };
+    if (data.dueDate !== undefined) {
+      updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+    }
+
+    await db.update(tasks).set(updateData).where(eq(tasks.id, id));
     
     revalidatePath('/');
     return { success: true };
