@@ -57,14 +57,11 @@ export function Sidebar({ userRole, profile, scratchpadContent = "" }: SidebarPr
     <>
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button onClick={toggle} className="p-2 rounded-xl bg-card border hover:bg-accent transition-colors">
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-        </div>
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-none">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
-          <div className="font-extrabold tracking-tighter text-lg hidden sm:block">NINE Tasks</div>
+          <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
         </div>
         <div className="flex items-center gap-2">
           <WeekendToggle />
@@ -87,10 +84,7 @@ export function Sidebar({ userRole, profile, scratchpadContent = "" }: SidebarPr
       `}>
         <div className="p-6 hidden md:flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
-              <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
-            </div>
+            <div className="font-extrabold tracking-tighter text-2xl">NINE Tasks</div>
             <div className="flex gap-1">
               <WeekendToggle />
               <ThemeToggle />
@@ -123,10 +117,7 @@ export function Sidebar({ userRole, profile, scratchpadContent = "" }: SidebarPr
 
         <div className="p-4 md:hidden flex flex-col gap-4 border-b bg-background">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
-              <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
-            </div>
+            <div className="font-extrabold tracking-tighter text-xl">NINE Tasks</div>
             <button onClick={toggle} className="p-2 rounded-xl bg-muted hover:bg-accent transition-colors"><X className="w-5 h-5" /></button>
           </div>
           {profile && (
